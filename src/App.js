@@ -213,7 +213,7 @@ function App() {
   const [profileError, setProfileError] = useState(false)
   useEffect(()=> {
 
-    axios.get("http://localhost:8080/")
+    axios.get("http://localhost:8080/options")
           .then(res => {
             const data = res.data
             if (data.fail) {
