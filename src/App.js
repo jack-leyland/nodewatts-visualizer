@@ -1,5 +1,5 @@
 import './App.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
@@ -7,33 +7,49 @@ const TitleBar = (props) => {
   const [active, setActive] = useState(false)
   const [statsActive, setStatsActive] = useState(false)
 
+  const activeHandler = () => {
+    setStatsActive(!statsActive)
+    props.statsHandler()
+  }
   const selectHandler = (id) => {
     props.profileSwitchHandler(id)
     setActive(!active)
   }
 
+  const closeHandler = () => {
+    setActive(false)
+  }
+
   return (
-    <div>
+    <>
+    <div className="h-[70px]">
       <div className="flex-col">
-        <div className="font-albert-600 text-gray-800 font-medium max-h-[20%] w-full m-auto text-5xl pb-[20px] flex items-end">
+        <div className="font-albert-600 text-gray-800 font-medium text-5xl pb-[20px] flex items-end">
           Node<span className="text-green-600 whitespace-pre">Watts </span><span className='text-3xl mr-[20px]'>Visualizer</span>
           <span className="text-lg text-gray-700 whitespace-pre">Profile: {props.name}{"   "}</span>
-          <Button title="Select Profile" active={true} buttonHandler={() => { setActive(!active) }} />
-          {props.showStats && (
+          <div className="flex-col items-center">
+            {!active && <Button title="Select Profile" active={true} buttonHandler={() => { setActive(!active) }} />}
+          </div>
+          {props.showStats && !active && (
             <div className="flex-col items-center">
               <button
                 className=" h-full text-sm bg-gray-300 w-[150px] h-[30px] pt-[5px] pb-[5px] rounded-md"
-                onClick={() => { setStatsActive(!statsActive) }}
+                onClick={() => { activeHandler() }}
               >
                 {statsActive ? "Close Stats" : "View Stats"}
               </button>
             </div>
           )}
         </div>
-        {statsActive && <StatsView data={props.stats} />}
+        
       </div>
-      {props.options && active && <ProfileDropDown options={props.options} selectHandler={selectHandler} />}
     </div>
+    {props.options && active &&
+      <div className='absolute w-full h-[calc(100vh-70px)] z-100 flex items-center bg-white justify-center'>
+        <ProfileDropDown options={props.options} closeHandler={closeHandler} selectHandler={selectHandler} />
+      </div>
+    }
+    </>
   )
 }
 
@@ -82,16 +98,25 @@ const ProfileDropDown = (props) => {
   }
 
   return (
-    <div className="w-[600px] h-[400px] rounded-md bg-gray-200 absolute left-[553px] overflow-y-scroll">
-      {options && options.map((data) => {
-        return (<div
-          className="text-sm p-2 hover:bg-green-200 rounded-md cursor-pointer"
-          key={data.key}
-          onClick={() => clickHandler(data.key)}
-        >
-          {data.name}
-        </div>)
-      })}
+    <div className="flex-col">
+      <div className="flex w-[600px]">
+        <div className="font-bold font-ubuntu mb-[5px] ml-[5px]">Select a Profile:</div>
+        <button 
+          className="ml-[410px] font-bold rounded-md bg-green-200 mb-1 pr-1 pl-1 hover:bg-red-200 cursor-pointer"
+          onClick={() => {props.closeHandler()}}
+        >Close</button>
+      </div>    
+      <div className="w-[600px] h-[400px] rounded-md bg-gray-200 overflow-y-scroll">
+        {options && options.map((data) => {
+          return (<div
+            className="text-sm p-2 hover:bg-green-200 rounded-md cursor-pointer"
+            key={data.key}
+            onClick={() => clickHandler(data.key)}
+          >
+            {data.name}
+          </div>)
+        })}
+      </div>
     </div>
   )
 }
@@ -110,7 +135,7 @@ const NavBar = (props) => {
   }
 
   return (
-    <div className="w-full mb-[10px]">
+    <div className="w-full h-[40px]">
       <Button
         title="All"
         buttonHandler={props.buttonHandler}
@@ -136,10 +161,11 @@ const NavBar = (props) => {
 }
 
 const Button = (props) => {
+  var styling
   if (props.active) {
-    var styling = "text-gray-800 font-ubuntu text-sm rounded-md w-[150px] h-[30px] mr-[10px] bg-green-300"
+    styling = "text-gray-800 font-ubuntu text-sm rounded-md w-[150px] h-[30px] mr-[10px] bg-green-300"
   } else {
-    var styling = "bg-gray-300 text-gray-800 text-sm font-ubuntu rounded-md w-[150px] h-[30px] mr-[10px] hover:bg-green-300"
+    styling = "bg-gray-300 text-gray-800 text-sm font-ubuntu rounded-md w-[150px] h-[30px] mr-[10px] hover:bg-green-300"
   }
   return (
     <button
@@ -152,20 +178,20 @@ const Button = (props) => {
 }
 
 const ListHeader = (props) => {
-  var styling = "border-b-2 border-gray-800 mr-[10px] flex justify-start "
+  var styling = "border-b-2 border-gray-800 flex justify-center "
   return (
-    <div className={styling} style={{ width: props.width + 'px' }}>{props.name}</div>
+    <div className={styling} style={{ width: props.width + '%' }}>{props.name}</div>
   )
 }
 
 const HeaderBar = () => {
   return (
-    <div className="w-full h-[25px] flex justify-start mb-[10px] font-Ubuntu">
-      <ListHeader width={400} name="Function" />
-      <ListHeader width={800} name="URL" />
-      <ListHeader width={110} name="Line:Column" />
-      <ListHeader width={90} name="Hit Count" />
-      <ListHeader width={300} name="Average Power Consumtion (Watts)" />
+    <div className="w-full h-[5%] flex justify-start font-ubuntu">
+      <ListHeader width={17} name="Function" />
+      <ListHeader width={53} name="URL" />
+      <ListHeader width={5} name="Line:Col" />
+      <ListHeader width={6} name="Hit Count" />
+      <ListHeader width={19} name="Average Power Consumtion (Watts)" />
     </div>
   )
 }
@@ -210,10 +236,10 @@ const ListView = (props) => {
 
 
   return (
-    <div className="flex-col items-start">
+    <div className="flex-col items-start h-[calc(100vh-130px)] w-full">
       {!props.categoryView && <HeaderBar />}
 
-      <div className="h-[780px] w-full overflow-y-scroll text-gray-800 font-ubuntu">
+      <div className="h-[calc(95%-5px)] mt-[5px] overflow-y-scroll text-gray-800 font-ubuntu">
         <div>
           {
             !props.categoryView && props.items && props.items.map((data) => {
@@ -232,14 +258,14 @@ const ListView = (props) => {
 
 const ListItem = (props) => {
   return (
-    <div className="h-[35px] w-full text-sm font-ubunutu flex justify-start border-b-2 border-gray-300">
-      <div className="w-[400px] h-full flex items-center mr-[10px]">
+    <div className="h-[35px] w-full text-sm font-ubunutu flex justify-center border-b-2 border-gray-300">
+      <div className="w-[17%] h-full flex items-center justify-center ">
         <span className="truncate">{props.data.call_frame.functionName ? props.data.call_frame.functionName : "(anonymous)"}</span>
       </div>
-      <div className="w-[800px] h-full flex items-center mr-[10px]">
+      <div className="w-[53%] h-full flex items-center justify-start">
         <span className="truncate">{props.data.call_frame.url ? props.data.call_frame.url : "N/A"}</span>
       </div>
-      <div className="w-[110px] h-full flex items-center mr-[10px]">
+      <div className="w-[5%] h-full flex items-center justify-center">
         <span className="truncate">
           {props.data.call_frame.lineNumber ?
             String(props.data.call_frame.lineNumber)
@@ -247,14 +273,14 @@ const ListItem = (props) => {
             : "N/A"}
         </span>
       </div>
-      <div className="w-[90px] h-full flex items-center mr-[10px]">
+      <div className="w-[6%] h-full flex items-center justify-center">
         <span className="truncate">
           {props.data.hit_count ? props.data.hit_count : "-"}
         </span>
       </div>
-      <div className={"w-[300px] h-full flex items-center mr-[10px] flex justify-center " + props.genColor(props.data.avg_watts)}>
+      <div className={"w-[19%] h-full flex items-center flex justify-center " + props.genColor(props.data.avg_watts, props.data.hit_count)}>
         <span className="truncate">
-          {props.data.avg_watts ? parseFloat(props.data.avg_watts).toFixed(1) : "Not Measured"}
+          {props.data.avg_watts ? parseFloat(props.data.avg_watts).toFixed(1) : (props.data.hit_count > 0 ? "Negligible" : "Not Measured")}
         </span>
       </div>
     </div>
@@ -290,16 +316,36 @@ const CategoryDropdown = (props) => {
         <span className="font-bold">{props.name}</span>
         {<div className="ml-[10px] font-regular">{parseFloat(props.avg).toFixed(1)}W</div>}
       </div>
-      {
-        expanded && props.data.nodes && <HeaderBar />
-      }
-      {
-        expanded && props.data.nodes && props.data.nodes.map((data) => {
-          return <ListItem genColor={props.genColor} data={data} key={uuidv4()} />
-        })
-      }
+
+      { expanded && (
+          <div className="pr-[10px] pl-[10px]">
+              {props.data.nodes && <HeaderBar />}
+              {expanded && props.data.nodes && props.data.nodes.map((data) => {
+                  return <ListItem genColor={props.genColor} data={data} key={uuidv4()} />
+              }
+        )}
+          </div>
+        )}
     </div>
   )
+}
+
+const PageTop = (props) => {
+  const [statsActive, setStatsActive] = useState(false)
+
+  const statsHandler = ()=> {
+    console.log("hit")
+    setStatsActive(!statsActive)
+  }
+
+  return (
+  <div className="flex-row w-full">
+    <TitleBar name={props.name} profileSwitchHandler={props.profileSwitchHandler} options={props.options} showStats={props.showNav} stats={props.stats} statsHandler={statsHandler}/>
+    { props.showNav && <NavBar sortModeHandler={props.sortModeHandler} buttonHandler={props.buttonHandler} sortState={props.sortState} activeView={props.activeView} />}
+    {statsActive && <StatsView data={props.stats}/>}
+  </div>
+  )
+
 }
 
 function App() {
@@ -331,6 +377,7 @@ function App() {
         }
       })
       .catch((err) => {
+        console.log(err)
         setOptionsError(true)
         setErrMsg("Please ensure the Visualization server is running. Use the nodewatts --visualizer flag to run the server without profiling.")
       })
@@ -460,13 +507,7 @@ function App() {
     setSortState(mode)
   }
 
-  const genColorShade = (val) => {
-    if (val === estimateStats.mean) {
-      return "bg-[#dbdbdb]"
-    } else if (val === 0) {
-      return "bg-[#ffffff]"
-    }
-
+  const genColorShade = (val, hc) => {
     var colors = {
       "darkGreen": "bg-[#44c240]",
       "medGreen": "bg-[#70bf6d]",
@@ -475,6 +516,16 @@ function App() {
       "medRed": "bg-[#db6b6b]",
       "darkRed": "bg-[#d93b3b]"
     }
+
+    if (val === estimateStats.mean) {
+      return "bg-[#dbdbdb]"
+    } else if (val === 0 && hc === 0) {
+      return "bg-[#ffffff]"
+    } else if (val === 0 ) {
+      return colors["darkGreen"]
+    }
+
+
 
     var overStep = Math.abs(estimateStats.max - estimateStats.mean) / 3
     var underStep = Math.abs(estimateStats.min - estimateStats.mean) / 3
@@ -498,13 +549,21 @@ function App() {
         return colors["darkGreen"]
       }
     }
-
   }
 
   return (
-    <div className="h-full pb-[50px] w-[1800px] m-auto pt-[20px] pl-[20px] overflow-hide" >
-      <TitleBar name={name} profileSwitchHandler={profileSwitchHandler} options={options} showStats={renderItems} stats={stats} />
-      {renderItems && <NavBar sortModeHandler={sortModeHandler} buttonHandler={viewHandler} sortState={sortState} activeView={activeView} />}
+    <div className="h-full w-full pb-[50px] m-auto pt-[20px] pl-[20px] pr-[20px] overflow-hide flex-col" >
+      <PageTop 
+        stats={stats} 
+        showNav={!!renderItems} 
+        profileSwitchHandler={profileSwitchHandler}
+        sortState={sortState}
+        sortModeHandler={sortModeHandler}
+        options={options}
+        buttonHandler={viewHandler}
+        activeView={activeView}
+        name={name}
+        />
       {renderItems && <ListView genColor={genColorShade} sort={sort} sortState={sortState} items={renderItems} categoryView={activeView === "NodeJS Internal" || activeView === "Node Modules"} />}
       {!renderItems && !optionsError && <span>Select a profile</span>}
       {optionsError && <span>Failed to fetch saved profiles. {errMsg}</span>}
@@ -512,5 +571,7 @@ function App() {
     </div>
   );
 }
+
+
 
 export default App;
