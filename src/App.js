@@ -28,7 +28,7 @@ const TitleBar = (props) => {
           Node<span className="text-green-600 whitespace-pre">Watts </span><span className='text-3xl mr-[20px]'>Visualizer</span>
           <span className="text-lg text-gray-700 whitespace-pre">Profile: {props.name}{"   "}</span>
           <div className="flex-col items-center">
-            {!active && <Button title="Select Profile" active={true} buttonHandler={() => { setActive(!active) }} />}
+            {/* {!active && <Button title="Select Profile" active={true} buttonHandler={() => { setActive(!active) }} />} */}
           </div>
           {props.showStats && !active && (
             <div className="flex-col items-center">
@@ -361,27 +361,32 @@ function App() {
   const [sortState, setSortState] = useState("Hit Count")
   const [estimateStats, setEstimateStats] = useState({})
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   axios.get("http://localhost:8080/options")
+  //     .then(res => {
+  //       const data = res.data
+  //       if (data.fail) {
+  //         setOptionsError(true)
+  //         setErrMsg(data.reason)
+  //       } else {
+  //         var opts = data.options.map((str) => {
+  //           return JSON.parse(str)
+  //         })
+  //         setOptions(opts.reverse())
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log(err)
+  //       setOptionsError(true)
+  //       setErrMsg("Please ensure the Visualization server is running. Use the nodewatts --visualizer flag to run the server without profiling.")
+  //     })
+  // }, [])
 
-    axios.get("http://localhost:8080/options")
-      .then(res => {
-        const data = res.data
-        if (data.fail) {
-          setOptionsError(true)
-          setErrMsg(data.reason)
-        } else {
-          var opts = data.options.map((str) => {
-            return JSON.parse(str)
-          })
-          setOptions(opts.reverse())
-        }
-      })
-      .catch((err) => {
-        console.log(err)
-        setOptionsError(true)
-        setErrMsg("Please ensure the Visualization server is running. Use the nodewatts --visualizer flag to run the server without profiling.")
-      })
+  useEffect(()=> {
+    const demoProfile = require('./demo-profile.json')
+    setupRenderState(demoProfile)  
   }, [])
+
 
   const setupRenderState = (profile) => {
 
